@@ -8,6 +8,22 @@ import { terser } from 'rollup-plugin-terser'
 import fs from 'fs'
 import dts from 'rollup-plugin-dts'
 
+const pathResolve = (_path) => {
+  const fullPath = path.resolve(process.cwd(), _path)
+  if (fs.existsSync(fullPath)) {
+    const stats = fs.statSync(fullPath)
+    if (!stats.isDirectory()) return path
+    for (let i = 0; i < exts.length; i++) {
+      const joinedPath = path.resolve(fullPath, `index${exts[i]}`)
+      if (fs.existsSync(joinedPath)) {
+        return joinedPath
+      }
+    }
+    throw new Error(`Can't find file or directory, ${fullPath}`)
+  }
+  throw new Error(`Can't find file or directory, ${fullPath}`)
+}
+
 const processENV = process.env.ENV
 console.log(processENV)
 
@@ -20,7 +36,6 @@ const plugins = [
     exclude: 'node_modules/**', // 防止打包node_modules下的文件
     runtimeHelpers: true, // 使plugin-transform-runtime生效
     presets: [
-      // '@babel/preset-typescript',
       '@babel/preset-react',
       [
         '@babel/preset-env',
@@ -44,27 +59,12 @@ const plugins = [
 ]
 
 const exts = ['.js', '.jsx', '.ts', '.tsx']
-
-const pathResolve = (_path) => {
-  const fullPath = path.resolve(process.cwd(), _path)
-  if (fs.existsSync(fullPath)) {
-    const stats = fs.statSync(fullPath)
-    if (!stats.isDirectory()) return path
-    for (let i = 0; i < exts.length; i++) {
-      const joinedPath = path.resolve(fullPath, `index${exts[i]}`)
-      if (fs.existsSync(joinedPath)) {
-        return joinedPath
-      }
-    }
-    throw new Error(`Can't find file or directory, ${fullPath}`)
-  }
-  throw new Error(`Can't find file or directory, ${fullPath}`)
-}
+const entry = pathResolve('src')
 
 const esBundler = () => {
   const dirs = fs.readdirSync(path.resolve(__dirname, 'src/modules'))
-  const configs = dirs.map((module) => ({
-    input: pathResolve(`src/modules/${module}`),
+  const sourceConfigs = dirs.map((module) => ({
+    input: entry,
     output: [
       {
         name: module,
@@ -76,9 +76,8 @@ const esBundler = () => {
     external: ['react'],
   }))
 
-  dirs.forEach((module) => {
-    configs.push({
-      input: pathResolve(`src/modules/${module}`),
+  const dtsConfigs = dirs.map((module) => ({
+    input: pathResolve(`src/modules/${module}`),
       output: [
         {
           name: module,
@@ -87,32 +86,35 @@ const esBundler = () => {
         },
       ],
       plugins: [dts()],
-    })
-  })
+  }))
 
-  configs.push({
-    input: 'src/index.tsx',
+
+  const rootDtsConfig = {
+    input: entry,
     output: {
       file: path.resolve(__dirname, 'es/index.d.ts'),
     },
     plugins: [dts()],
-  })
-
-  if (!fs.existsSync(path.resolve(process.cwd(), 'es'))) {
-    fs.mkdirSync(path.resolve(process.cwd(), 'es'))
   }
-  const buffer = fs.readFileSync(path.resolve(process.cwd(), 'src/index.tsx'))
-  const strData = buffer.toString().replaceAll('/modules', '')
 
+  if (!fs.existsSync(path.resolve(process.cwd(), 'es')))
+    fs.mkdirSync(path.resolve(process.cwd(), 'es'))
+
+  const buffer = fs.readFileSync(entry)
+  const strData = buffer.toString().replaceAll('/modules', '')
   fs.writeFileSync(path.resolve(process.cwd(), 'es/index.js'), strData)
 
-  return configs
+  return [
+    ...sourceConfigs,
+    ...dtsConfigs,
+    rootDtsConfig,
+  ]
 }
 
 const cjsBundler = () => {
   return [
     {
-      input: 'src/index.tsx',
+      input: entry,
       output: {
         file: path.resolve(__dirname, 'cjs/index.js'),
         format: 'cjs',
@@ -126,7 +128,7 @@ const cjsBundler = () => {
 const umdBundler = () => {
   return [
     {
-      input: 'src/index.tsx',
+      input: entry,
       output: {
         name: 'ICEMaterial',
         file: path.resolve(__dirname, 'dist/index.js'),
