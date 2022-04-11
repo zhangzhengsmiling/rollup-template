@@ -1,14 +1,14 @@
-import * as React from 'react'
+import * as React from 'react';
 
 const Loading = (props: any) => {
-  const boxWidth = 60
+  const boxWidth = 60;
   const center = {
     cx: boxWidth / 2,
     cy: boxWidth / 2,
-  }
-  const outerR = (boxWidth * 0.8) / 2
-  const innerR = outerR / 2
-  const duration = 2000
+  };
+  const outerR = (boxWidth * 0.8) / 2;
+  const innerR = outerR / 2;
+  const duration = 2000;
 
   return (
     <div style={{ width: 'auto', height: 'auto' }}>
@@ -53,7 +53,7 @@ const Loading = (props: any) => {
         </circle>
       </svg>
     </div>
-  )
-}
+  );
+};
 
-export default Loading
+export default Loading;

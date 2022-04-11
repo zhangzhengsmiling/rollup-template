@@ -1,9 +1,10 @@
-import resolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
-import babel from 'rollup-plugin-babel'
-import path from 'path'
-import typescript from 'rollup-plugin-typescript2'
+import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import babel from 'rollup-plugin-babel';
+import path from 'path';
+import typescript from 'rollup-plugin-typescript2';
 import { terser } from 'rollup-plugin-terser'
+import less from 'rollup-plugin-less';
 
 import fs from 'fs'
 import dts from 'rollup-plugin-dts'
@@ -56,6 +57,7 @@ const plugins = [
   }),
   terser(),
   commonjs(),
+  less(),
 ]
 
 const exts = ['.js', '.jsx', '.ts', '.tsx']

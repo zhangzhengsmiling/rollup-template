@@ -1,9 +1,10 @@
 {
-  "name": "ice-demo",
+  "name": "ice-component",
   "version": "1.0.0",
   "main": "dist/index.js",
   "module": "es/index.js",
   "license": "MIT",
+  "types": "./es/index.d.ts",
   "scripts": {
     "build": "cross-env ENV=production yarn rollup -c"
   },
@@ -13,18 +14,22 @@
     "@babel/preset-env": "^7.16.7",
     "@babel/preset-react": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
+    "@types/moment": "^2.13.0",
     "@types/react": "^17.0.38",
     "cross-env": "^7.0.3",
     "rollup": "^2.63.0",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-dts": "^4.1.0",
+    "rollup-plugin-less": "^1.1.3",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.31.1",
     "typescript": "^4.5.4"
   },
   "dependencies": {
+    "classnames": "^2.3.1",
+    "moment": "^2.29.2",
     "react": "^17.0.2"
   }
 }

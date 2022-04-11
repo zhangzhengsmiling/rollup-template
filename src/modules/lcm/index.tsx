@@ -5,20 +5,20 @@
 // console.log('我被打包进去了, lcm')
 // export default lcm
 
-import React from 'react'
+import React from 'react';
 
 const hello = (target: typeof Test) => {
-  console.log('hello')
-  return target
-}
+  console.log('hello');
+  return target;
+};
 
 @hello
-class Test extends React.PureComponent<{}, {}> {
-  constructor(props: {}) {
-    super(props)
+class Test extends React.PureComponent<Record<string, unknown>, Record<string, unknown>> {
+  constructor(props: Record<string, unknown>) {
+    super(props);
   }
   render(): React.ReactNode {
-    return <div>hello, world</div>
+    return <div>hello, world</div>;
   }
 }
-export default Test
+export default Test;
