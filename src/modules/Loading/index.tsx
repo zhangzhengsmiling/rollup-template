@@ -1,4 +1,5 @@
 import * as React from 'react'
+import './style.less';
 
 const Loading = (props: any) => {
   const boxWidth = 60

@@ -6,7 +6,7 @@
 // export default lcm
 
 import React from 'react'
-
+import './style.less';
 const hello = (target: typeof Test) => {
   console.log('hello')
   return target

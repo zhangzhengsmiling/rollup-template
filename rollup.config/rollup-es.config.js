@@ -3,12 +3,13 @@ import commonjs from 'rollup-plugin-commonjs'
 import babel from 'rollup-plugin-babel'
 import path from 'path'
 import typescript from 'rollup-plugin-typescript2'
-import { terser } from 'rollup-plugin-terser'
-
-import fs from 'fs'
+import { terser } from 'rollup-plugin-terser';
+import less from 'rollup-plugin-less';
+import fs from 'fs';
+const CURRENT_WORKSPACE_DIRECTORY = process.cwd();
 
 const pathResolve = (_path) => {
-  const fullPath = path.resolve(process.cwd(), _path)
+  const fullPath = path.resolve(CURRENT_WORKSPACE_DIRECTORY, _path)
   if (fs.existsSync(fullPath)) {
     const stats = fs.statSync(fullPath)
     if (!stats.isDirectory()) return path
@@ -55,12 +56,16 @@ const plugins = [
   }),
   terser(),
   commonjs(),
+  less({
+    output: 'css/main.css',
+    insert: false,
+  }),
 ]
 
 const exts = ['.js', '.jsx', '.ts', '.tsx']
 const entry = pathResolve('src')
 
-
+// read all files of a directory
 const filesOf = (dir) => {
   const readFileOfDir = (dir, results) => {
     const list = fs.readdirSync(dir)
@@ -81,10 +86,9 @@ const filesOf = (dir) => {
 
 const esBundler = () => {
 
-
-  const res = filesOf(path.resolve(__dirname, 'src'));
-  console.log(res);
-  const pathParser = (path) => path.replace(__dirname, '')
+  const res = filesOf(path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'src'))
+    .filter(p => !/.less$/.test(p));
+  const pathParser = (path) => path.replace(CURRENT_WORKSPACE_DIRECTORY, '')
     .replace('/src/', '')
     .replace(/.ts$/, '')
     .replace(/.tsx$/, '')
@@ -93,13 +97,12 @@ const esBundler = () => {
     temp[pathParser(source)] = source;
     return temp;
   }, {})
-  console.log(input);
   const sourceConfigs = [
     {
       input,
       output: [
         {
-          dir: path.resolve(__dirname, 'rollup-es'),
+          dir: path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'rollup-es'),
           format: 'es',
         }
       ],
