@@ -6,6 +6,8 @@ import typescript from 'rollup-plugin-typescript2'
 import { terser } from 'rollup-plugin-terser';
 import less from 'rollup-plugin-less';
 import fs from 'fs';
+import _less from 'less';
+import uglifyCss from 'uglifycss';
 const CURRENT_WORKSPACE_DIRECTORY = process.cwd();
 
 const pathResolve = (_path) => {
@@ -84,37 +86,69 @@ const filesOf = (dir) => {
   return result;
 }
 
-const esBundler = () => {
-
-  const res = filesOf(path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'src'))
-    .filter(p => !/.less$/.test(p));
-  const pathParser = (path) => path.replace(CURRENT_WORKSPACE_DIRECTORY, '')
-    .replace('/src/', '')
-    .replace(/.ts$/, '')
-    .replace(/.tsx$/, '')
-
-  const input = res.reduce((temp, source) => {
-    temp[pathParser(source)] = source;
-    return temp;
-  }, {})
-  const sourceConfigs = [
-    {
-      input,
-      output: [
-        {
-          dir: path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'rollup-es'),
-          format: 'es',
-        }
-      ],
-      plugins,
-      external: ['react'],
-    }
-  ]
-
-
-  return [...sourceConfigs]
+const create = (p) => {
+  const parsed = path.parse(p);
+  fs.mkdirSync(parsed.dir, { recursive: true });
 }
 
-const configs = [...esBundler()]
+const less2css = (lessFiles) => {
+  const toString = (d) => d.toString();
+  const readFileSync = (filename) => fs.readFileSync(filename);
+  const d = lessFiles.map(p => path.resolve(CURRENT_WORKSPACE_DIRECTORY, p))
+    .map(readFileSync)
+    .map(toString)
+    .map(content => _less.render(content))
+  return Promise.all(d)
+  .then((cssResults) => {
+    return cssResults.map((d, i) => [
+      lessFiles[i]
+        .replace(CURRENT_WORKSPACE_DIRECTORY, '')
+        .replace('/src/', '')
+        .replace(/.less$/, ''),
+      d
+    ])
+  })
+  .then(data => {
+    data.map(([name, content]) => {
+      const filename = path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'es-css', name + '.css');
+      create(filename);
+      fs.writeFileSync(filename, uglifyCss.processString(content.css));
+    })
+  })
+}
 
-export default configs
+const esBundler = async () => {
+  const allFiles = filesOf(path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'src'));
+  const tsFiles = allFiles.filter(p => /.tsx$|.ts$/.test(p));
+  const lessFiles = allFiles.filter(p => /.less$/.test(p));
+
+  // const res = filesOf(path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'src'))
+  //   .filter(p => !/.less$/.test(p));
+  const pathParser = (path) => path.replace(CURRENT_WORKSPACE_DIRECTORY, '')
+    .replace('/src/', '')
+    .replace(/.ts$|.tsx$/, '')
+
+  const input = tsFiles.reduce((temp, source) => ({
+    ...temp,
+    [pathParser(source)]: source,
+  }), {})
+
+  const sourceConfigs = {
+    input,
+    output: [
+      {
+        dir: path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'rollup-es'),
+        format: 'es',
+      }
+    ],
+    plugins,
+    external: ['react'],
+  }
+  
+  await less2css(lessFiles)
+  return sourceConfigs;
+
+}
+
+
+export default Promise.all([esBundler()]);
