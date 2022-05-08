@@ -8,7 +8,11 @@ import less from 'rollup-plugin-less'
 import fs from 'fs'
 import _less from 'less'
 import uglifyCss from 'uglifycss'
+
 const CURRENT_WORKSPACE_DIRECTORY = process.cwd()
+const BUILD_DIR_NAME = 'rollup-es'
+const PATH_MAIN_CSS = `${BUILD_DIR_NAME}/style.css`
+const exts = ['.js', '.jsx', '.ts', '.tsx']
 
 const pathResolve = (_path) => {
   const fullPath = path.resolve(CURRENT_WORKSPACE_DIRECTORY, _path)
@@ -59,13 +63,10 @@ const plugins = [
   terser(),
   commonjs(),
   less({
-    output: 'rollup-es/style.css',
+    output: PATH_MAIN_CSS,
     insert: false,
   }),
 ]
-
-const exts = ['.js', '.jsx', '.ts', '.tsx']
-const entry = pathResolve('src')
 
 // read all files of a directory
 const filesOf = (dir) => {
@@ -98,20 +99,27 @@ const less2css = (lessFiles) => {
     .map((p) => path.resolve(CURRENT_WORKSPACE_DIRECTORY, p))
     .map(readFileSync)
     .map(toString)
-    .map((content) => _less.render(content, { rewriteUrls: true }))
+    .map((content, i) => _less.render(content, { filename: lessFiles[i] }))
   return Promise.all(d)
     .then((cssResults) => {
-      return cssResults.map((d, i) => [
-        lessFiles[i]
-          .replace(CURRENT_WORKSPACE_DIRECTORY, '')
-          .replace('/src/', '')
-          .replace(/.less$/, ''),
-        d,
-      ])
+      const imports = cssResults.reduce((arr, item) => [...arr, ...item.imports], [])
+      return cssResults
+        .map((item, i) => ({
+          ...item,
+          source: lessFiles[i],
+        }))
+        .filter((d) => !imports.includes(d.source))
+        .map((d) => [
+          d.source
+            .replace(CURRENT_WORKSPACE_DIRECTORY, '')
+            .replace('/src/', '')
+            .replace(/.less$/, ''),
+          d,
+        ])
     })
     .then((data) => {
       data.map(([name, content]) => {
-        const filename = path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'rollup-es', name + '.css')
+        const filename = path.resolve(CURRENT_WORKSPACE_DIRECTORY, BUILD_DIR_NAME, name + '.css')
         create(filename)
         fs.writeFileSync(filename, uglifyCss.processString(content.css))
       })
@@ -141,7 +149,7 @@ const esBundler = async () => {
     input,
     output: [
       {
-        dir: path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'rollup-es'),
+        dir: path.resolve(CURRENT_WORKSPACE_DIRECTORY, BUILD_DIR_NAME),
         format: 'es',
       },
     ],
