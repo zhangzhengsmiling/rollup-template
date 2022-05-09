@@ -5,7 +5,7 @@
   "module": "es/index.js",
   "license": "MIT",
   "scripts": {
-    "build": "cross-env ENV=production yarn rollup -c rollup.config/rollup-es.config.js"
+    "build": "cross-env ENV=production yarn rollup -c rollup.config/rollup.config.js --configPlugin rollup-plugin-node-resolve"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
