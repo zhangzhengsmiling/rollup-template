@@ -2,7 +2,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import _less from 'less';
 import * as uglifyCss from 'uglifycss';
-import { plugins, BUILD_DIR_NAME, filesOf, createDirectoryIfNotExist, CURRENT_WORKSPACE_DIRECTORY } from '../common'
+import { plugins, pluginWithoutTerser, BUILD_DIR_NAME, filesOf, createDirectoryIfNotExist, CURRENT_WORKSPACE_DIRECTORY } from '../common'
+import dts from 'rollup-plugin-dts'
 
 const processENV = process.env.ENV;
 console.log(processENV);
@@ -43,11 +44,11 @@ const less2css = async (lessFiles: string[]) => {
     });
 };
 
-const esBundler = async () => {
-  const allFiles = filesOf(path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'src'));
-  const tsFiles = allFiles.filter((p) => /.tsx$|.ts$/.test(p));
-  const lessFiles = allFiles.filter((p) => /.less$/.test(p));
+const allFiles = filesOf(path.resolve(CURRENT_WORKSPACE_DIRECTORY, 'src'));
+const tsFiles = allFiles.filter((p) => /.tsx$|.ts$/.test(p));
+const lessFiles = allFiles.filter((p) => /.less$/.test(p));
 
+const esBundler = async () => {
   const pathParser = (path: string) =>
     path
       .replace(CURRENT_WORKSPACE_DIRECTORY, '')
@@ -76,5 +77,16 @@ const esBundler = async () => {
   await less2css(lessFiles);
   return sourceConfigs;
 };
+
+export const esDtsBundler = () => {
+  const build = tsFiles.map(file => ({
+    input: file,
+    plugins: [...pluginWithoutTerser, dts()],
+    output: {
+      file: file.replace(/.ts|.tsx/, '.d.ts').replace(/src/, BUILD_DIR_NAME)
+    }
+  }))
+  return build
+}
 
 export default esBundler;

@@ -6,7 +6,9 @@ import { terser } from 'rollup-plugin-terser';
 import less from 'rollup-plugin-less';
 import { PATH_MAIN_CSS } from './constants'
 
-export const plugins = [
+const PLUGIN_TERSER = terser();
+
+const PLUGINS_COMMON = [
   resolve(),
   typescript({
     check: false,
@@ -38,5 +40,13 @@ export const plugins = [
     output: PATH_MAIN_CSS,
     insert: false,
   }),
-  terser(),
+]
+
+export const plugins = [
+  ...PLUGINS_COMMON,
+  PLUGIN_TERSER
+];
+
+export const pluginWithoutTerser = [
+  ...PLUGINS_COMMON
 ];
