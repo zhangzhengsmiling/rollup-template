@@ -1,5 +1,5 @@
-import path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 import { EXTENSIONS, CURRENT_WORKSPACE_DIRECTORY } from './constants'
 
 // read all files of a directory

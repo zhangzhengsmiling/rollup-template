@@ -1,4 +1,4 @@
-import path from 'path';
+import  * as path from 'path';
 import { plugins, pathResolve, CURRENT_WORKSPACE_DIRECTORY } from '../common'
 const entry = pathResolve('src');
 

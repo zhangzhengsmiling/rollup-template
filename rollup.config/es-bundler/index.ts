@@ -1,9 +1,8 @@
-import path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 import _less from 'less';
 import uglifyCss from 'uglifycss';
 import { plugins, BUILD_DIR_NAME, filesOf, createDirectoryIfNotExist, CURRENT_WORKSPACE_DIRECTORY } from '../common'
-
 
 const processENV = process.env.ENV;
 console.log(processENV);
