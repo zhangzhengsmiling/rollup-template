@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "module": "es/index.js",
+  "types": "es/index.d.ts",
   "license": "MIT",
   "scripts": {
-    "build": "cross-env ENV=production yarn rollup -c rollup.config --configPlugin rollup-plugin-node-resolve --configPlugin @rollup/plugin-typescript"
+    "build": "cross-env ENV=production yarn rollup -c rollup.config --configPlugin rollup-plugin-node-resolve"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
