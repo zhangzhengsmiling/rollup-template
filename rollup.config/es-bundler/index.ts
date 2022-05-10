@@ -1,16 +1,16 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import _less from 'less';
-import uglifyCss from 'uglifycss';
+import * as uglifyCss from 'uglifycss';
 import { plugins, BUILD_DIR_NAME, filesOf, createDirectoryIfNotExist, CURRENT_WORKSPACE_DIRECTORY } from '../common'
 
 const processENV = process.env.ENV;
 console.log(processENV);
 
-const toString = (d) => d.toString();
-const readFileSync = (filename) => fs.readFileSync(filename);
+const toString = (d: { toString: () => string }) => d.toString();
+const readFileSync = (filename: string) => fs.readFileSync(filename);
 
-const less2css = async (lessFiles) => {
+const less2css = async (lessFiles: string[]) => {
   const d = lessFiles
     .map((p) => path.resolve(CURRENT_WORKSPACE_DIRECTORY, p))
     .map(readFileSync)
@@ -18,7 +18,7 @@ const less2css = async (lessFiles) => {
     .map((content, i) => _less.render(content, { filename: lessFiles[i] }));
   return Promise.all(d)
     .then((cssResults) => {
-      const imports = cssResults.reduce((arr, item) => [...arr, ...item.imports], []);
+      const imports = cssResults.reduce((arr, item) => [...arr, ...item.imports], [] as string[]);
       return cssResults
         .map((item, i) => ({
           ...item,
@@ -37,7 +37,8 @@ const less2css = async (lessFiles) => {
       data.map(([name, content]) => {
         const filename = path.resolve(CURRENT_WORKSPACE_DIRECTORY, BUILD_DIR_NAME, name + '.css');
         createDirectoryIfNotExist(filename);
-        fs.writeFileSync(filename, uglifyCss.processString(content.css));
+        if (typeof content !== 'string')
+          fs.writeFileSync(filename, uglifyCss.processString(content.css));
       });
     });
 };
@@ -47,7 +48,7 @@ const esBundler = async () => {
   const tsFiles = allFiles.filter((p) => /.tsx$|.ts$/.test(p));
   const lessFiles = allFiles.filter((p) => /.less$/.test(p));
 
-  const pathParser = (path) =>
+  const pathParser = (path: string) =>
     path
       .replace(CURRENT_WORKSPACE_DIRECTORY, '')
       .replace('/src/', '')

@@ -3,3 +3,4 @@ cjs/*
 es/*
 dist/*
 .DS_Store
+*-error.log
