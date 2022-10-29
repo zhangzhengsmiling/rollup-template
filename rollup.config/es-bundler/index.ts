@@ -17,8 +17,11 @@ const less2css = async (lessFiles: string[]) => {
     .map(readFileSync)
     .map(toString)
     .map((content, i) => _less.render(content, { filename: lessFiles[i] }));
+
+  console.log(lessFiles, 'less files....', CURRENT_WORKSPACE_DIRECTORY)
   return Promise.all(d)
     .then((cssResults) => {
+      console.log(cssResults)
       const imports = cssResults.reduce((arr, item) => [...arr, ...item.imports], [] as string[]);
       return cssResults
         .map((item, i) => ({
