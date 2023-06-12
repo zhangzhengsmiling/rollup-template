@@ -1,0 +1,41 @@
+@LEFT_WIDTH: 100px;
+
+.scheduleTable {
+  display: flex;
+  width: 100%;
+  height: auto;
+  .left {
+    width: @LEFT_WIDTH;
+    height: auto;
+    box-shadow: 4px 0px 10px rgba(0, 0, 0, 0.06);
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 0;
+  }
+  .right {
+    width: calc(100% - @LEFT_WIDTH);
+    height: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
+
+.dateGridsBackground {
+  .highlight {
+    circle {
+      fill: #1478fa;
+      stroke: transparent;
+    }
+    text {
+      fill: white;
+    }
+  }
+}
+
+.scheduleItem {
+  &:hover {
+    .rect {
+      filter: drop-shadow(4px 0px 12px rgba(0, 0, 0, 0.07));
+    }
+  }
+}

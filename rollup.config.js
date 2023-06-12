@@ -1,13 +1,15 @@
-import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
-import babel from 'rollup-plugin-babel';
-import path from 'path';
-import typescript from 'rollup-plugin-typescript2';
+import resolve from 'rollup-plugin-node-resolve'
+import commonjs from 'rollup-plugin-commonjs'
+import babel from 'rollup-plugin-babel'
+import path from 'path'
+import typescript from 'rollup-plugin-typescript2'
 import { terser } from 'rollup-plugin-terser'
-import less from 'rollup-plugin-less';
-
+import rollupPostCss from 'rollup-plugin-postcss'
 import fs from 'fs'
 import dts from 'rollup-plugin-dts'
+import url from 'postcss-url'
+import rollPostcssInject2Css from 'rollup-plugin-postcss-inject-to-css'
+import less from 'rollup-plugin-less'
 
 const pathResolve = (_path) => {
   const fullPath = path.resolve(process.cwd(), _path)
@@ -25,8 +27,18 @@ const pathResolve = (_path) => {
   throw new Error(`Can't find file or directory, ${fullPath}`)
 }
 
+const postCssConfig = {
+  inject: true,
+  plugins: [
+    url({
+      url: 'inline',
+      maxSize: 1000000, // 所有图片转成base64
+    }),
+  ],
+  extensions: ['.css', '.scss', '.less'],
+}
+
 const processENV = process.env.ENV
-console.log(processENV)
 
 const plugins = [
   resolve(),
@@ -57,7 +69,11 @@ const plugins = [
   }),
   terser(),
   commonjs(),
-  less(),
+  rollupPostCss(postCssConfig),
+  // less(),
+  rollPostcssInject2Css({
+    exclude: /\/node_modules\//,
+  }),
 ]
 
 const exts = ['.js', '.jsx', '.ts', '.tsx']
@@ -78,17 +94,17 @@ const esBundler = () => {
     external: ['react'],
   }))
 
-  const dtsConfigs = dirs.map((module) => ({
-    input: pathResolve(`src/modules/${module}`),
-    output: [
-      {
-        name: module,
-        file: path.resolve(__dirname, `es/${module}/index.d.ts`),
-        format: 'es',
-      },
-    ],
-    plugins: [dts()],
-  }))
+  // const dtsConfigs = dirs.map((module) => ({
+  //   input: pathResolve(`src/modules/${module}`),
+  //   output: [
+  //     {
+  //       name: module,
+  //       file: path.resolve(__dirname, `es/${module}/index.d.ts`),
+  //       format: 'es',
+  //     },
+  //   ],
+  //   plugins: [dts()],
+  // }))
 
   const rootDtsConfig = {
     input: entry,
@@ -101,44 +117,54 @@ const esBundler = () => {
   if (!fs.existsSync(path.resolve(process.cwd(), 'es'))) fs.mkdirSync(path.resolve(process.cwd(), 'es'))
 
   const buffer = fs.readFileSync(entry)
-  const strData = buffer.toString().replaceAll('/modules', '')
+  const strData = buffer.toString().replace(/\/modules/g, '')
   fs.writeFileSync(path.resolve(process.cwd(), 'es/index.js'), strData)
 
-  return [...sourceConfigs, ...dtsConfigs, rootDtsConfig]
-}
+  // const modules = fs.readdirSync(path.resolve(process.cwd(), 'src/modules'))
+  // console.log(modules)
+  // const dtsConfigs = modules.map(module => {
+  //   input: pathResolve()
+  // })
 
-const cjsBundler = () => {
   return [
-    {
-      input: entry,
-      output: {
-        file: path.resolve(__dirname, 'cjs/index.js'),
-        format: 'cjs',
-      },
-      plugins,
-      external: ['react'],
-    },
+    ...sourceConfigs,
+    // ...dtsConfigs,
+    rootDtsConfig,
   ]
 }
 
-const umdBundler = () => {
-  return [
-    {
-      input: entry,
-      output: {
-        name: 'ICEMaterial',
-        file: path.resolve(__dirname, 'dist/index.js'),
-        format: 'umd',
-        globals: {
-          react: 'React',
-        },
-      },
-      plugins,
-      external: ['react'],
-    },
-  ]
-}
+// const cjsBundler = () => {
+//   return [
+//     {
+//       input: entry,
+//       output: {
+//         file: path.resolve(__dirname, 'cjs/index.js'),
+//         format: 'cjs',
+//       },
+//       plugins,
+//       external: ['react'],
+//     },
+//   ]
+// }
 
-const configs = [...esBundler(), ...cjsBundler(), ...umdBundler()]
+// const umdBundler = () => {
+//   return [
+//     {
+//       input: entry,
+//       output: {
+//         name: 'ICEMaterial',
+//         file: path.resolve(__dirname, 'dist/index.js'),
+//         format: 'umd',
+//         globals: {
+//           react: 'React',
+//         },
+//       },
+//       plugins,
+//       external: ['react'],
+//     },
+//   ]
+// }
+
+const configs = [...esBundler()]
 
 export default configs
