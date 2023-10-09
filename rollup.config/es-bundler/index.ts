@@ -12,14 +12,14 @@ const toString = (d: { toString: () => string }) => d.toString();
 const readFileSync = (filename: string) => fs.readFileSync(filename);
 
 const less2css = async (lessFiles: string[]) => {
-  const d = lessFiles
+  const cssReaders = lessFiles
     .map((p) => path.resolve(CURRENT_WORKSPACE_DIRECTORY, p))
     .map(readFileSync)
     .map(toString)
     .map((content, i) => _less.render(content, { filename: lessFiles[i] }));
 
   console.log(lessFiles, 'less files....', CURRENT_WORKSPACE_DIRECTORY)
-  return Promise.all(d)
+  return Promise.all(cssReaders)
     .then((cssResults) => {
       console.log(cssResults)
       const imports = cssResults.reduce((arr, item) => [...arr, ...item.imports], [] as string[]);
