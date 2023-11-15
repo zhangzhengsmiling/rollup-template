@@ -9,7 +9,7 @@ import fs from 'fs'
 import dts from 'rollup-plugin-dts'
 import url from 'postcss-url'
 import rollPostcssInject2Css from 'rollup-plugin-postcss-inject-to-css'
-import less from 'rollup-plugin-less'
+// import less from 'rollup-plugin-less'
 
 const pathResolve = (_path) => {
   const fullPath = path.resolve(process.cwd(), _path)
@@ -81,30 +81,28 @@ const entry = pathResolve('src')
 
 const esBundler = () => {
   const dirs = fs.readdirSync(path.resolve(__dirname, 'src/modules'))
-  const sourceConfigs = dirs.map((module) => ({
-    input: pathResolve(`src/modules/${module}`),
-    output: [
-      {
-        name: module,
-        file: path.resolve(__dirname, `es/${module}/index.js`),
-        format: 'es',
-      },
-    ],
-    plugins,
-    external: ['react'],
-  }))
-
-  // const dtsConfigs = dirs.map((module) => ({
+  // const sourceConfigs = dirs.map((module) => ({
   //   input: pathResolve(`src/modules/${module}`),
   //   output: [
   //     {
   //       name: module,
-  //       file: path.resolve(__dirname, `es/${module}/index.d.ts`),
+  //       file: path.resolve(__dirname, `es/${module}/index.js`),
   //       format: 'es',
   //     },
   //   ],
-  //   plugins: [dts()],
+  //   plugins,
+  //   external: ['react'],
   // }))
+
+  const sourceConfigs = {
+    input: entry,
+    output: {
+      file: path.resolve(__dirname, 'es/index.js'),
+      format: 'es'
+    },
+    plugins,
+    external: ['react']
+  }
 
   const rootDtsConfig = {
     input: entry,
@@ -114,57 +112,51 @@ const esBundler = () => {
     plugins: [dts()],
   }
 
-  if (!fs.existsSync(path.resolve(process.cwd(), 'es'))) fs.mkdirSync(path.resolve(process.cwd(), 'es'))
+  // if (!fs.existsSync(path.resolve(process.cwd(), 'es'))) fs.mkdirSync(path.resolve(process.cwd(), 'es'))
 
-  const buffer = fs.readFileSync(entry)
-  const strData = buffer.toString().replace(/\/modules/g, '')
-  fs.writeFileSync(path.resolve(process.cwd(), 'es/index.js'), strData)
-
-  // const modules = fs.readdirSync(path.resolve(process.cwd(), 'src/modules'))
-  // console.log(modules)
-  // const dtsConfigs = modules.map(module => {
-  //   input: pathResolve()
-  // })
+  // const buffer = fs.readFileSync(entry)
+  // const strData = buffer.toString().replace(/\/modules/g, '')
+  // fs.writeFileSync(path.resolve(process.cwd(), 'es/index.js'), strData)
 
   return [
-    ...sourceConfigs,
+    sourceConfigs,
     // ...dtsConfigs,
     rootDtsConfig,
   ]
 }
 
-// const cjsBundler = () => {
-//   return [
-//     {
-//       input: entry,
-//       output: {
-//         file: path.resolve(__dirname, 'cjs/index.js'),
-//         format: 'cjs',
-//       },
-//       plugins,
-//       external: ['react'],
-//     },
-//   ]
-// }
+const cjsBundler = () => {
+  return [
+    {
+      input: entry,
+      output: {
+        file: path.resolve(__dirname, 'cjs/index.js'),
+        format: 'cjs',
+      },
+      plugins,
+      external: ['react'],
+    },
+  ]
+}
 
-// const umdBundler = () => {
-//   return [
-//     {
-//       input: entry,
-//       output: {
-//         name: 'ICEMaterial',
-//         file: path.resolve(__dirname, 'dist/index.js'),
-//         format: 'umd',
-//         globals: {
-//           react: 'React',
-//         },
-//       },
-//       plugins,
-//       external: ['react'],
-//     },
-//   ]
-// }
+const umdBundler = () => {
+  return [
+    {
+      input: entry,
+      output: {
+        name: 'ICEMaterial',
+        file: path.resolve(__dirname, 'dist/index.js'),
+        format: 'umd',
+        globals: {
+          react: 'React',
+        },
+      },
+      plugins,
+      external: ['react'],
+    },
+  ]
+}
 
-const configs = [...esBundler()]
+const configs = [...esBundler(), ...cjsBundler(), ...umdBundler()]
 
 export default configs

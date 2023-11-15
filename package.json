@@ -5,6 +5,7 @@
   "module": "es/index.js",
   "license": "MIT",
   "types": "./es/index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "cross-env ENV=production yarn rollup -c"
   },
