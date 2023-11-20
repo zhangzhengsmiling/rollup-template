@@ -81,28 +81,28 @@ const entry = pathResolve('src')
 
 const esBundler = () => {
   const dirs = fs.readdirSync(path.resolve(__dirname, 'src/modules'))
-  // const sourceConfigs = dirs.map((module) => ({
-  //   input: pathResolve(`src/modules/${module}`),
-  //   output: [
-  //     {
-  //       name: module,
-  //       file: path.resolve(__dirname, `es/${module}/index.js`),
-  //       format: 'es',
-  //     },
-  //   ],
-  //   plugins,
-  //   external: ['react'],
-  // }))
-
-  const sourceConfigs = {
-    input: entry,
-    output: {
-      file: path.resolve(__dirname, 'es/index.js'),
-      format: 'es'
-    },
+  const sourceConfigs = dirs.map((module) => ({
+    input: pathResolve(`src/modules/${module}`),
+    output: [
+      {
+        name: module,
+        file: path.resolve(__dirname, `es/${module}/index.js`),
+        format: 'es',
+      },
+    ],
     plugins,
-    external: ['react']
-  }
+    external: ['react'],
+  }))
+
+  // const sourceConfigs = {
+  //   input: entry,
+  //   output: {
+  //     file: path.resolve(__dirname, 'es/index.js'),
+  //     format: 'es'
+  //   },
+  //   plugins,
+  //   external: ['react']
+  // }
 
   const rootDtsConfig = {
     input: entry,
@@ -112,14 +112,14 @@ const esBundler = () => {
     plugins: [dts()],
   }
 
-  // if (!fs.existsSync(path.resolve(process.cwd(), 'es'))) fs.mkdirSync(path.resolve(process.cwd(), 'es'))
+  if (!fs.existsSync(path.resolve(process.cwd(), 'es'))) fs.mkdirSync(path.resolve(process.cwd(), 'es'))
 
-  // const buffer = fs.readFileSync(entry)
-  // const strData = buffer.toString().replace(/\/modules/g, '')
-  // fs.writeFileSync(path.resolve(process.cwd(), 'es/index.js'), strData)
+  const buffer = fs.readFileSync(entry)
+  const strData = buffer.toString().replace(/\/modules/g, '')
+  fs.writeFileSync(path.resolve(process.cwd(), 'es/index.js'), strData)
 
   return [
-    sourceConfigs,
+    ...sourceConfigs,
     // ...dtsConfigs,
     rootDtsConfig,
   ]
